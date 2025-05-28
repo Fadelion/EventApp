@@ -16,7 +16,14 @@ gem "turbo-rails"
 gem "stimulus-rails"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
-
+# Building user authentication and authorization [https://github.com/heartcombo/devise]
+gem "devise"
+# Add Stripe to your Rails app [https://github.com/stripe/stripe-ruby]
+gem "stripe"
+# Add Sinatra gems to your Rails app [https://github.com/sinatra/sinatra]
+gem "sinatra"
+# Add dotenv to your Rails app [https://github.com/bkeepers/dotenv]
+gem "dotenv-rails"
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
 
