@@ -1,0 +1,22 @@
+<h2>Nouvelle participation à votre événement !</h2>
+
+<p>Bonjour <%= @admin.first_name %>,</p>
+
+<p>Bonne nouvelle ! <strong><%= @attendee.first_name %> <%= @attendee.last_name %></strong> vient de s'inscrire à votre événement :</p>
+
+<div style="border: 1px solid #ddd; padding: 15px; margin: 20px 0; border-radius: 5px;">
+  <h3><%= @event.title %></h3>
+  <p><strong>Date :</strong> <%= @event.start_date.strftime("%d/%m/%Y à %H:%M") %></p>
+  <p><strong>Lieu :</strong> <%= @event.location %></p>
+  <p><strong>Prix :</strong> <%= @event.price %>€</p>
+</div>
+
+<p><strong>Informations du participant :</strong></p>
+<ul>
+  <li><strong>Nom :</strong> <%= @attendee.first_name %> <%= @attendee.last_name %></li>
+  <li><strong>Email :</strong> <%= @attendee.email %></li>
+</ul>
+
+<p>Vous avez maintenant <strong><%= @event.attendees.count %></strong> participant(s) inscrit(s) à cet événement.</p>
+
+<p>Félicitations pour le succès de votre événement !</p>

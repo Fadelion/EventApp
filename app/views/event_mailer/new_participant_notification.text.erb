@@ -1,0 +1,18 @@
+Nouvelle participation à votre événement !
+
+Bonjour <%= @admin.first_name %>,
+
+Bonne nouvelle ! <%= @attendee.first_name %> <%= @attendee.last_name %> vient de s'inscrire à votre événement :
+
+<%= @event.title %>
+Date : <%= @event.start_date.strftime("%d/%m/%Y à %H:%M") %>
+Lieu : <%= @event.location %>
+Prix : <%= @event.price %>€
+
+Informations du participant :
+- Nom : <%= @attendee.first_name %> <%= @attendee.last_name %>
+- Email : <%= @attendee.email %>
+
+Vous avez maintenant <%= @event.attendees.count %> participant(s) inscrit(s) à cet événement.
+
+Félicitations pour le succès de votre événement !
