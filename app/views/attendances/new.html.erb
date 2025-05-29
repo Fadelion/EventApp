@@ -18,75 +18,46 @@
               <p>Pour vous inscrire à cet événement, vous devez payer <%= @event.price %>€.</p>
             </div>
             
-            <%= form_with(url: event_attendances_path(@event), method: :post, id: "payment-form") do |f| %>
-              <div class="mb-3">
-                <label for="card-element" class="form-label">Carte de crédit</label>
-                <div id="card-element" class="form-control" style="height: 2.4em; padding-top: .7em;"></div>
-                <div id="card-errors" class="text-danger mt-2" role="alert"></div>
+            <% if Rails.env.development? %>
+              <!-- Version simplifiée pour l'environnement de développement -->
+              <%= form_with(url: event_attendances_path(@event), method: :post) do |f| %>
+                <div class="alert alert-warning">
+                  <p><strong>Mode développement :</strong> Le paiement sera simulé sans utiliser Stripe.</p>
+                </div>
+                
+                <%= f.hidden_field :simulate_payment, value: true %>
+                
+                <div class="d-grid gap-2">
+                  <%= f.submit "Simuler le paiement et s'inscrire", class: "btn btn-primary" %>
+                </div>
+              <% end %>
+              
+              <hr class="my-4">
+              
+              <div class="alert alert-info">
+                <p><strong>Tester Stripe Checkout :</strong> Vous pouvez également tester l'intégration de Stripe Checkout.</p>
+                <p class="text-danger">Note: En mode développement, le lien s'affichera dans le terminal. Copiez-le et ouvrez-le manuellement dans votre navigateur.</p>
               </div>
               
-              <div class="d-grid gap-2">
-                <%= f.submit "Payer et s'inscrire", class: "btn btn-primary", id: "submit-button" %>
-              </div>
+              <%= form_with(url: event_attendances_path(@event), method: :post) do |f| %>
+                <div class="d-grid gap-2">
+                  <%= f.submit "Générer le lien Stripe Checkout", class: "btn btn-outline-primary" %>
+                </div>
+              <% end %>
+            <% else %>
+              <!-- Version avec Stripe Checkout -->
+              <%= form_with(url: event_attendances_path(@event), method: :post) do |f| %>
+                <div class="alert alert-info">
+                  <p>En cliquant sur le bouton ci-dessous, vous serez redirigé vers la page de paiement sécurisée de Stripe.</p>
+                </div>
+                
+                <div class="d-grid gap-2">
+                  <%= f.submit "Procéder au paiement", class: "btn btn-primary" %>
+                </div>
+              <% end %>
+              
+              <script src="https://js.stripe.com/v3/"></script>
             <% end %>
-            
-            <script src="https://js.stripe.com/v3/"></script>
-            <script>
-              document.addEventListener('DOMContentLoaded', function() {
-                // Créer une instance de l'API Stripe
-                var stripe = Stripe('<%= Rails.configuration.stripe[:publishable_key] %>');
-                var elements = stripe.elements();
-                
-                // Créer un élément de carte et le monter au DOM
-                var card = elements.create('card');
-                card.mount('#card-element');
-                
-                // Gérer les erreurs de validation en temps réel
-                card.addEventListener('change', function(event) {
-                  var displayError = document.getElementById('card-errors');
-                  if (event.error) {
-                    displayError.textContent = event.error.message;
-                  } else {
-                    displayError.textContent = '';
-                  }
-                });
-                
-                // Gérer la soumission du formulaire
-                var form = document.getElementById('payment-form');
-                form.addEventListener('submit', function(event) {
-                  event.preventDefault();
-                  
-                  // Désactiver le bouton pendant le traitement
-                  document.getElementById('submit-button').disabled = true;
-                  
-                  // Créer un token et le soumettre au serveur
-                  stripe.createToken(card).then(function(result) {
-                    if (result.error) {
-                      // Informer l'utilisateur s'il y a une erreur
-                      var errorElement = document.getElementById('card-errors');
-                      errorElement.textContent = result.error.message;
-                      document.getElementById('submit-button').disabled = false;
-                    } else {
-                      // Envoyer le token au serveur
-                      stripeTokenHandler(result.token);
-                    }
-                  });
-                });
-                
-                function stripeTokenHandler(token) {
-                  // Insérer le token ID dans le formulaire pour qu'il soit soumis au serveur
-                  var form = document.getElementById('payment-form');
-                  var hiddenInput = document.createElement('input');
-                  hiddenInput.setAttribute('type', 'hidden');
-                  hiddenInput.setAttribute('name', 'stripeToken');
-                  hiddenInput.setAttribute('value', token.id);
-                  form.appendChild(hiddenInput);
-                  
-                  // Soumettre le formulaire
-                  form.submit();
-                }
-              });
-            </script>
           <% else %>
             <!-- Pour les événements gratuits -->
             <%= form_with(url: event_attendances_path(@event), method: :post) do |f| %>

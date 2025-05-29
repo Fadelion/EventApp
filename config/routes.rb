@@ -14,6 +14,6 @@ Rails.application.routes.draw do
     resources :attendances, only: [:new, :create, :index]
   end
   
-  # Routes pour Stripe webhook (à implémenter si nécessaire)
-  # post '/stripe-webhook', to: 'stripe_webhooks#create'
+  # Routes pour Stripe webhook
+  post '/stripe-webhook', to: 'stripe_webhooks#create'
 end

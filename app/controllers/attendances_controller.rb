@@ -23,37 +23,59 @@ class AttendancesController < ApplicationController
       return
     end
     
-    # Pour les événements payants, traiter avec Stripe
-    begin
-      # Créer ou récupérer le client Stripe
-      customer = find_or_create_stripe_customer
+    # Pour les événements payants en environnement de développement, simuler un paiement réussi
+    if Rails.env.development? && params[:simulate_payment]
+      # Générer un faux ID de paiement pour les tests
+      fake_payment_id = "test_payment_#{Time.now.to_i}"
       
-      # Créer la charge
-      charge = Stripe::Charge.create({
-        customer: customer.id,
-        amount: @event.price * 100, # en centimes
-        description: "Participation à l'événement: #{@event.title}",
-        currency: 'eur',
-      })
-      
-      # Si le paiement réussit, créer la participation
+      # Créer la participation avec le faux ID de paiement
       @attendance = current_user.attendances.build(
         event: @event,
-        stripe_payment_id: charge.id
+        stripe_payment_id: fake_payment_id
       )
       
       if @attendance.save
-        redirect_to @event, notice: "Paiement réussi! Vous êtes inscrit à cet événement."
+        redirect_to @event, notice: "Paiement simulé réussi! Vous êtes inscrit à cet événement."
       else
-        # Si l'enregistrement échoue, rembourser le client
-        Stripe::Refund.create(charge: charge.id)
         flash.now[:alert] = "Erreur lors de l'inscription: #{@attendance.errors.full_messages.join(', ')}"
         render :new, status: :unprocessable_entity
       end
+      return
+    end
+    
+    # Pour les événements payants, utiliser Stripe Checkout
+    begin
+      # Construire les URLs avec le protocole HTTP explicite
+      success_url = "http://#{request.host_with_port}#{event_path(@event)}?payment_success=true"
+      cancel_url = "http://#{request.host_with_port}#{new_event_attendance_path(@event)}"
       
-    rescue Stripe::CardError => e
-      flash.now[:alert] = "Erreur de carte: #{e.message}"
-      render :new, status: :unprocessable_entity
+      # Créer une session Stripe Checkout
+      session = Stripe::Checkout::Session.create({
+        payment_method_types: ['card'],
+        customer_email: current_user.email,
+        line_items: [{
+          price_data: {
+            currency: 'eur',
+            product_data: {
+              name: @event.title,
+              description: "Participation à l'événement: #{@event.title}",
+            },
+            unit_amount: @event.price * 100, # en centimes
+          },
+          quantity: 1,
+        }],
+        metadata: {
+          user_id: current_user.id,
+          event_id: @event.id
+        },
+        mode: 'payment',
+        success_url: success_url,
+        cancel_url: cancel_url,
+      })
+      
+      # Rediriger vers la page de paiement Stripe Checkout
+      redirect_to session.url, allow_other_host: true
+      
     rescue Stripe::StripeError => e
       flash.now[:alert] = "Erreur de paiement: #{e.message}"
       render :new, status: :unprocessable_entity
