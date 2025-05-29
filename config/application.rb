@@ -17,8 +17,12 @@ module EventApp
     config.autoload_lib(ignore: %w[assets tasks])
 
     # Autoriser les redirections vers des hôtes externes (pour Stripe Checkout)
-    config.action_controller.default_url_options = { protocol: 'http' }
-    config.hosts.clear
+    config.action_controller.default_url_options = { 
+      protocol: Rails.env.production? ? 'https' : 'http' 
+    }
+    
+    # En développement uniquement, autoriser tous les hôtes
+    config.hosts.clear if Rails.env.development?
 
     # Configuration for the application, engines, and railties goes here.
     #

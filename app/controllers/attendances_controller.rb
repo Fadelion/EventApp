@@ -45,9 +45,10 @@ class AttendancesController < ApplicationController
     
     # Pour les événements payants, utiliser Stripe Checkout
     begin
-      # Construire les URLs avec le protocole HTTP explicite
-      success_url = "http://#{request.host_with_port}#{event_path(@event)}?payment_success=true"
-      cancel_url = "http://#{request.host_with_port}#{new_event_attendance_path(@event)}"
+      # Construire les URLs avec le protocole approprié selon l'environnement
+      protocol = Rails.env.production? ? "https" : "http"
+      success_url = "#{protocol}://#{request.host_with_port}#{event_path(@event)}?payment_success=true"
+      cancel_url = "#{protocol}://#{request.host_with_port}#{new_event_attendance_path(@event)}"
       
       # Créer une session Stripe Checkout
       session = Stripe::Checkout::Session.create({
